@@ -4,6 +4,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Publications from "./pages/Publications";
+import Conferences from "./pages/Conferences";
+import Standards from "./pages/Standards";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import SubmitPaper from "./pages/SubmitPaper";
+import VerifyCertificate from "./pages/VerifyCertificate";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -16,7 +23,15 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/publications" element={<Publications />} />
+          <Route path="/publications/:type" element={<Publications />} />
+          <Route path="/conferences" element={<Conferences />} />
+          <Route path="/standards" element={<Standards />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/submit" element={<SubmitPaper />} />
+          <Route path="/verify" element={<VerifyCertificate />} />
+          <Route path="/verify/:id" element={<VerifyCertificate />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
