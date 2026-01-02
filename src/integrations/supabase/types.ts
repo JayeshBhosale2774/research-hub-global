@@ -14,16 +14,340 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      certificates: {
+        Row: {
+          certificate_number: string
+          created_at: string
+          id: string
+          is_valid: boolean
+          issued_at: string
+          paper_id: string
+          pdf_path: string | null
+          qr_code_data: string
+        }
+        Insert: {
+          certificate_number: string
+          created_at?: string
+          id?: string
+          is_valid?: boolean
+          issued_at?: string
+          paper_id: string
+          pdf_path?: string | null
+          qr_code_data: string
+        }
+        Update: {
+          certificate_number?: string
+          created_at?: string
+          id?: string
+          is_valid?: boolean
+          issued_at?: string
+          paper_id?: string
+          pdf_path?: string | null
+          qr_code_data?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certificates_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: true
+            referencedRelation: "papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conferences: {
+        Row: {
+          created_at: string
+          description: string | null
+          domains: Database["public"]["Enums"]["paper_domain"][] | null
+          end_date: string
+          id: string
+          is_active: boolean | null
+          registration_fee: number | null
+          start_date: string
+          submission_deadline: string
+          title: string
+          updated_at: string
+          venue: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          domains?: Database["public"]["Enums"]["paper_domain"][] | null
+          end_date: string
+          id?: string
+          is_active?: boolean | null
+          registration_fee?: number | null
+          start_date: string
+          submission_deadline: string
+          title: string
+          updated_at?: string
+          venue: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          domains?: Database["public"]["Enums"]["paper_domain"][] | null
+          end_date?: string
+          id?: string
+          is_active?: boolean | null
+          registration_fee?: number | null
+          start_date?: string
+          submission_deadline?: string
+          title?: string
+          updated_at?: string
+          venue?: string
+        }
+        Relationships: []
+      }
+      papers: {
+        Row: {
+          abstract: string
+          admin_notes: string | null
+          approved_at: string | null
+          author_id: string
+          authors: Json
+          created_at: string
+          domain: Database["public"]["Enums"]["paper_domain"]
+          file_path: string | null
+          id: string
+          keywords: string[] | null
+          plagiarism_score: number | null
+          publication_type: Database["public"]["Enums"]["publication_type"]
+          published_at: string | null
+          reviewed_at: string | null
+          revision_deadline: string | null
+          status: Database["public"]["Enums"]["paper_status"]
+          submitted_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          abstract: string
+          admin_notes?: string | null
+          approved_at?: string | null
+          author_id: string
+          authors?: Json
+          created_at?: string
+          domain: Database["public"]["Enums"]["paper_domain"]
+          file_path?: string | null
+          id?: string
+          keywords?: string[] | null
+          plagiarism_score?: number | null
+          publication_type?: Database["public"]["Enums"]["publication_type"]
+          published_at?: string | null
+          reviewed_at?: string | null
+          revision_deadline?: string | null
+          status?: Database["public"]["Enums"]["paper_status"]
+          submitted_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          abstract?: string
+          admin_notes?: string | null
+          approved_at?: string | null
+          author_id?: string
+          authors?: Json
+          created_at?: string
+          domain?: Database["public"]["Enums"]["paper_domain"]
+          file_path?: string | null
+          id?: string
+          keywords?: string[] | null
+          plagiarism_score?: number | null
+          publication_type?: Database["public"]["Enums"]["publication_type"]
+          published_at?: string | null
+          reviewed_at?: string | null
+          revision_deadline?: string | null
+          status?: Database["public"]["Enums"]["paper_status"]
+          submitted_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          author_id: string
+          base_amount: number
+          created_at: string
+          extra_author_fee: number | null
+          hardcopy_fee: number | null
+          id: string
+          paid_at: string | null
+          paper_id: string
+          payment_proof_path: string | null
+          shipping_address: string | null
+          status: string
+          total_amount: number
+          transaction_id: string | null
+          verified_at: string | null
+          wants_hardcopy: boolean | null
+        }
+        Insert: {
+          author_id: string
+          base_amount?: number
+          created_at?: string
+          extra_author_fee?: number | null
+          hardcopy_fee?: number | null
+          id?: string
+          paid_at?: string | null
+          paper_id: string
+          payment_proof_path?: string | null
+          shipping_address?: string | null
+          status?: string
+          total_amount: number
+          transaction_id?: string | null
+          verified_at?: string | null
+          wants_hardcopy?: boolean | null
+        }
+        Update: {
+          author_id?: string
+          base_amount?: number
+          created_at?: string
+          extra_author_fee?: number | null
+          hardcopy_fee?: number | null
+          id?: string
+          paid_at?: string | null
+          paper_id?: string
+          payment_proof_path?: string | null
+          shipping_address?: string | null
+          status?: string
+          total_amount?: number
+          transaction_id?: string | null
+          verified_at?: string | null
+          wants_hardcopy?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "papers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          institution: string | null
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name: string
+          id: string
+          institution?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          institution?: string | null
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      standards: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          document_path: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          document_path?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          document_path?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_certificate_number: { Args: never; Returns: string }
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["app_role"]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "author"
+      paper_domain:
+        | "ECE"
+        | "CSE"
+        | "IT"
+        | "Mechanical"
+        | "Civil"
+        | "Electrical"
+        | "Aerospace"
+      paper_status:
+        | "submitted"
+        | "under_review"
+        | "revision_requested"
+        | "approved"
+        | "rejected"
+        | "published"
+      publication_type: "journal" | "magazine" | "research_paper"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +474,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "author"],
+      paper_domain: [
+        "ECE",
+        "CSE",
+        "IT",
+        "Mechanical",
+        "Civil",
+        "Electrical",
+        "Aerospace",
+      ],
+      paper_status: [
+        "submitted",
+        "under_review",
+        "revision_requested",
+        "approved",
+        "rejected",
+        "published",
+      ],
+      publication_type: ["journal", "magazine", "research_paper"],
+    },
   },
 } as const
