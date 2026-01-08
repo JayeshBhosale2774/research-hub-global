@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Publications from "./pages/Publications";
 import Conferences from "./pages/Conferences";
@@ -12,6 +13,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SubmitPaper from "./pages/SubmitPaper";
 import VerifyCertificate from "./pages/VerifyCertificate";
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +36,14 @@ const App = () => (
             <Route path="/submit" element={<SubmitPaper />} />
             <Route path="/verify" element={<VerifyCertificate />} />
             <Route path="/verify/:id" element={<VerifyCertificate />} />
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute requiredRole="admin">
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
