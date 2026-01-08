@@ -23,14 +23,14 @@ export default function Login() {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, user, loading } = useAuth();
+  const { signIn, user, role, loading } = useAuth();
 
   // Redirect if already logged in
   useEffect(() => {
-    if (!loading && user) {
-      navigate("/dashboard");
+    if (!loading && user && role) {
+      navigate(role === "admin" ? "/admin" : "/");
     }
-  }, [user, loading, navigate]);
+  }, [user, role, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +69,7 @@ export default function Login() {
       title: "Login Successful",
       description: "Welcome back to IRP Publication!",
     });
-    navigate("/dashboard");
+    // Role-based redirect will happen via useEffect
   };
 
   if (loading) {

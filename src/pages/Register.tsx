@@ -46,7 +46,7 @@ export default function Register() {
   // Redirect if already logged in
   useEffect(() => {
     if (!loading && user) {
-      navigate("/dashboard");
+      navigate("/");
     }
   }, [user, loading, navigate]);
 
