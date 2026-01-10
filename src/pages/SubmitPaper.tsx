@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -8,25 +8,30 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Upload, FileText, User, Plus, X, 
-  ArrowRight, ArrowLeft, CheckCircle, AlertCircle 
+  ArrowRight, ArrowLeft, CheckCircle, AlertCircle, LogIn
 } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 
-const domains = [
-  { value: "cse", label: "Computer Science (CSE)" },
-  { value: "ece", label: "Electronics (ECE)" },
-  { value: "it", label: "Information Technology" },
-  { value: "mechanical", label: "Mechanical Engineering" },
-  { value: "civil", label: "Civil Engineering" },
-  { value: "electrical", label: "Electrical Engineering" },
-  { value: "aerospace", label: "Aerospace Engineering" },
+type PaperDomain = Database["public"]["Enums"]["paper_domain"];
+type PublicationType = Database["public"]["Enums"]["publication_type"];
+
+const domains: { value: PaperDomain; label: string }[] = [
+  { value: "CSE", label: "Computer Science (CSE)" },
+  { value: "ECE", label: "Electronics (ECE)" },
+  { value: "IT", label: "Information Technology" },
+  { value: "Mechanical", label: "Mechanical Engineering" },
+  { value: "Civil", label: "Civil Engineering" },
+  { value: "Electrical", label: "Electrical Engineering" },
+  { value: "Aerospace", label: "Aerospace Engineering" },
 ];
 
-const types = [
+const types: { value: PublicationType; label: string }[] = [
   { value: "journal", label: "Journal Article" },
   { value: "magazine", label: "Magazine Article" },
-  { value: "research", label: "Research Paper" },
-  { value: "conference", label: "Conference Paper" },
+  { value: "research_paper", label: "Research Paper" },
 ];
 
 interface Author {
@@ -36,19 +41,21 @@ interface Author {
 }
 
 export default function SubmitPaper() {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     abstract: "",
     keywords: "",
-    domain: "",
-    type: "",
+    domain: "" as PaperDomain | "",
+    type: "" as PublicationType | "",
     file: null as File | null,
   });
   const [authors, setAuthors] = useState<Author[]>([
     { name: "", email: "", institution: "" },
   ]);
-  const { toast } = useToast();
 
   const addAuthor = () => {
     if (authors.length < 6) {
@@ -72,31 +79,146 @@ export default function SubmitPaper() {
     const file = e.target.files?.[0];
     if (file) {
       if (file.type !== "application/pdf") {
-        toast({
-          title: "Invalid File",
-          description: "Please upload a PDF file only",
-          variant: "destructive",
-        });
+        toast.error("Please upload a PDF file only");
         return;
       }
       if (file.size > 10 * 1024 * 1024) {
-        toast({
-          title: "File Too Large",
-          description: "Maximum file size is 10MB",
-          variant: "destructive",
-        });
+        toast.error("Maximum file size is 10MB");
         return;
       }
       setFormData({ ...formData, file });
     }
   };
 
-  const handleSubmit = () => {
-    toast({
-      title: "Paper Submitted!",
-      description: "Your paper has been submitted for review. You'll receive an email within 3 days.",
-    });
+  const validateStep = (currentStep: number): boolean => {
+    if (currentStep === 1) {
+      if (!formData.title.trim()) {
+        toast.error("Please enter a paper title");
+        return false;
+      }
+      if (!formData.abstract.trim()) {
+        toast.error("Please enter an abstract");
+        return false;
+      }
+      if (!formData.keywords.trim()) {
+        toast.error("Please enter keywords");
+        return false;
+      }
+      if (!formData.domain) {
+        toast.error("Please select a domain");
+        return false;
+      }
+      if (!formData.type) {
+        toast.error("Please select a paper type");
+        return false;
+      }
+    }
+    if (currentStep === 2) {
+      for (let i = 0; i < authors.length; i++) {
+        if (!authors[i].name.trim() || !authors[i].email.trim() || !authors[i].institution.trim()) {
+          toast.error(`Please fill all details for Author ${i + 1}`);
+          return false;
+        }
+      }
+    }
+    return true;
   };
+
+  const handleNext = () => {
+    if (validateStep(step)) {
+      setStep(step + 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!user) {
+      toast.error("Please login to submit a paper");
+      return;
+    }
+
+    if (!formData.file) {
+      toast.error("Please upload your paper");
+      return;
+    }
+
+    if (!formData.domain || !formData.type) {
+      toast.error("Please complete all required fields");
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Upload file to storage
+      const fileExt = formData.file.name.split('.').pop();
+      const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from("papers")
+        .upload(fileName, formData.file);
+
+      if (uploadError) throw uploadError;
+
+      // Parse keywords
+      const keywordsArray = formData.keywords
+        .split(',')
+        .map(k => k.trim())
+        .filter(k => k.length > 0);
+
+      // Insert paper record
+      const { error: insertError } = await supabase
+        .from("papers")
+        .insert([{
+          author_id: user.id,
+          title: formData.title.trim(),
+          abstract: formData.abstract.trim(),
+          keywords: keywordsArray,
+          domain: formData.domain,
+          publication_type: formData.type,
+          authors: authors as unknown as Database["public"]["Tables"]["papers"]["Insert"]["authors"],
+          file_path: fileName,
+        }]);
+
+      if (insertError) throw insertError;
+
+      toast.success("Paper submitted successfully! You'll receive an email within 3 days.");
+      navigate("/");
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      toast.error(error.message || "Failed to submit paper. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Show login prompt if not authenticated
+  if (!authLoading && !user) {
+    return (
+      <Layout>
+        <section className="py-20 bg-background">
+          <div className="container mx-auto px-4 lg:px-8">
+            <div className="max-w-md mx-auto text-center">
+              <div className="bg-card rounded-xl border border-border p-8">
+                <LogIn className="w-16 h-16 text-primary mx-auto mb-4" />
+                <h2 className="font-serif text-2xl font-semibold mb-2">Login Required</h2>
+                <p className="text-muted-foreground mb-6">
+                  Please login or create an account to submit your paper.
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <Button variant="outline" onClick={() => navigate("/register")}>
+                    Register
+                  </Button>
+                  <Button onClick={() => navigate("/login")}>
+                    Login
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -204,7 +326,7 @@ export default function SubmitPaper() {
                       <select
                         className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                         value={formData.domain}
-                        onChange={(e) => setFormData({ ...formData, domain: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, domain: e.target.value as PaperDomain })}
                         required
                       >
                         <option value="">Select domain</option>
@@ -219,7 +341,7 @@ export default function SubmitPaper() {
                       <select
                         className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
                         value={formData.type}
-                        onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, type: e.target.value as PublicationType })}
                         required
                       >
                         <option value="">Select type</option>
@@ -356,7 +478,7 @@ export default function SubmitPaper() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Paper Title:</span>
-                        <span className="text-foreground font-medium">{formData.title || "Not provided"}</span>
+                        <span className="text-foreground font-medium truncate max-w-[200px]">{formData.title || "Not provided"}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Domain:</span>
@@ -369,6 +491,10 @@ export default function SubmitPaper() {
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Authors:</span>
                         <span className="text-foreground">{authors.length} author(s)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">File:</span>
+                        <span className="text-foreground">{formData.file ? "Uploaded" : "Not uploaded"}</span>
                       </div>
                     </div>
                   </div>
@@ -394,7 +520,7 @@ export default function SubmitPaper() {
               {/* Navigation Buttons */}
               <div className="flex justify-between mt-8 pt-6 border-t border-border">
                 {step > 1 ? (
-                  <Button variant="outline" onClick={() => setStep(step - 1)}>
+                  <Button variant="outline" onClick={() => setStep(step - 1)} disabled={isSubmitting}>
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Previous
                   </Button>
@@ -403,14 +529,14 @@ export default function SubmitPaper() {
                 )}
 
                 {step < 3 ? (
-                  <Button variant="academic" onClick={() => setStep(step + 1)}>
+                  <Button onClick={handleNext}>
                     Next Step
-                    <ArrowRight className="w-4 h-4" />
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button variant="hero" onClick={handleSubmit}>
-                    Submit Paper
-                    <ArrowRight className="w-4 h-4" />
+                  <Button onClick={handleSubmit} disabled={isSubmitting}>
+                    {isSubmitting ? "Submitting..." : "Submit Paper"}
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 )}
               </div>
