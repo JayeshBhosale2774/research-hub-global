@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAdminAction } from "@/hooks/useAuditLog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -226,6 +227,13 @@ export function PapersManagement() {
                             onClick={() => {
                               setSelectedPaper(paper);
                               setViewDialogOpen(true);
+                              // Log admin viewing paper details
+                              logAdminAction({
+                                action: "view_paper",
+                                table_name: "papers",
+                                record_id: paper.id,
+                                details: { title: paper.title, author_id: paper.author_id },
+                              });
                             }}
                           >
                             <Eye className="h-4 w-4" />

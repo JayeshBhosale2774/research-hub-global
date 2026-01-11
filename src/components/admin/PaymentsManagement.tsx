@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { logAdminAction } from "@/hooks/useAuditLog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -194,6 +195,16 @@ export function PaymentsManagement() {
                             onClick={() => {
                               setSelectedPayment(payment);
                               setViewDialogOpen(true);
+                              // Log admin viewing payment details (includes shipping address)
+                              logAdminAction({
+                                action: "view_payment",
+                                table_name: "payments",
+                                record_id: payment.id,
+                                details: { 
+                                  author_id: payment.author_id,
+                                  has_shipping_address: !!payment.shipping_address 
+                                },
+                              });
                             }}
                           >
                             <Eye className="h-4 w-4" />
