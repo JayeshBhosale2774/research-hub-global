@@ -14,6 +14,7 @@ import Register from "./pages/Register";
 import SubmitPaper from "./pages/SubmitPaper";
 import VerifyCertificate from "./pages/VerifyCertificate";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import AuthorDashboard from "./pages/author/AuthorDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -36,6 +37,14 @@ const App = () => (
             <Route path="/submit" element={<SubmitPaper />} />
             <Route path="/verify" element={<VerifyCertificate />} />
             <Route path="/verify/:id" element={<VerifyCertificate />} />
+            <Route
+              path="/dashboard/*"
+              element={
+                <ProtectedRoute>
+                  <AuthorDashboard />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="/admin/*"
               element={
