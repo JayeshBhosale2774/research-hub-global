@@ -45,6 +45,7 @@ export default function SubmitPaper() {
   const { user, loading: authLoading } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
     abstract: "",
@@ -143,6 +144,11 @@ export default function SubmitPaper() {
 
     if (!formData.domain || !formData.type) {
       toast.error("Please complete all required fields");
+      return;
+    }
+
+    if (!agreedToTerms) {
+      toast.error("Please agree to the terms and conditions before submitting");
       return;
     }
 
@@ -514,6 +520,29 @@ export default function SubmitPaper() {
                       </div>
                     </div>
                   </div>
+
+                  {/* Terms Agreement Checkbox */}
+                  <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={agreedToTerms}
+                        onChange={(e) => setAgreedToTerms(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <div className="text-sm">
+                        <p className="text-foreground">
+                          I agree to the{" "}
+                          <span className="font-semibold text-primary">Terms and Conditions</span>
+                        </p>
+                        <p className="text-muted-foreground mt-1">
+                          By submitting this paper, I confirm that the work is original, authored by me/us, 
+                          and I accept the publication policies of this private limited organization. 
+                          I understand that plagiarism or copyright violations may result in rejection and further action.
+                        </p>
+                      </div>
+                    </label>
+                  </div>
                 </div>
               )}
 
@@ -534,7 +563,7 @@ export default function SubmitPaper() {
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} disabled={isSubmitting}>
+                  <Button onClick={handleSubmit} disabled={isSubmitting || !agreedToTerms}>
                     {isSubmitting ? "Submitting..." : "Submit Paper"}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
