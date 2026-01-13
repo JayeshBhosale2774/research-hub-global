@@ -30,7 +30,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Eye, CheckCircle, XCircle, Clock, Search, FileText } from "lucide-react";
+import { Eye, CheckCircle, XCircle, Clock, Search, FileText, Send } from "lucide-react";
 import { format } from "date-fns";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -108,6 +108,35 @@ export function PapersManagement() {
       toast.error("Failed to update paper: " + error.message);
     },
   });
+
+  const publishPaperMutation = useMutation({
+    mutationFn: async (paperId: string) => {
+      const { error } = await supabase
+        .from("papers")
+        .update({
+          status: "published" as PaperStatus,
+          published_at: new Date().toISOString(),
+        })
+        .eq("id", paperId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-papers"] });
+      queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["published-papers"] });
+      toast.success("Paper published successfully! It is now visible in the public publications list.");
+    },
+    onError: (error) => {
+      toast.error("Failed to publish paper: " + error.message);
+    },
+  });
+
+  const handlePublish = (paper: Paper) => {
+    if (confirm(`Are you sure you want to publish "${paper.title}"? It will become publicly visible.`)) {
+      publishPaperMutation.mutate(paper.id);
+    }
+  };
 
   const handleAction = (paper: Paper, action: "approve" | "reject" | "revision") => {
     setSelectedPaper(paper);
@@ -265,6 +294,18 @@ export function PapersManagement() {
                                 <XCircle className="h-4 w-4" />
                               </Button>
                             </>
+                          )}
+                          {paper.status === "approved" && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-primary hover:text-primary"
+                              onClick={() => handlePublish(paper)}
+                              disabled={publishPaperMutation.isPending}
+                              title="Publish paper"
+                            >
+                              <Send className="h-4 w-4" />
+                            </Button>
                           )}
                         </div>
                       </TableCell>
