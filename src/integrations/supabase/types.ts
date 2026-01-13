@@ -86,6 +86,13 @@ export type Database = {
             referencedRelation: "papers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "certificates_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: true
+            referencedRelation: "published_papers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       conferences: {
@@ -259,6 +266,13 @@ export type Database = {
             referencedRelation: "papers"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "payments_paper_id_fkey"
+            columns: ["paper_id"]
+            isOneToOne: false
+            referencedRelation: "published_papers_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -347,10 +361,58 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      published_papers_public: {
+        Row: {
+          abstract: string | null
+          author_names: string[] | null
+          created_at: string | null
+          domain: Database["public"]["Enums"]["paper_domain"] | null
+          id: string | null
+          keywords: string[] | null
+          publication_type:
+            | Database["public"]["Enums"]["publication_type"]
+            | null
+          published_at: string | null
+          status: Database["public"]["Enums"]["paper_status"] | null
+          title: string | null
+        }
+        Insert: {
+          abstract?: string | null
+          author_names?: never
+          created_at?: string | null
+          domain?: Database["public"]["Enums"]["paper_domain"] | null
+          id?: string | null
+          keywords?: string[] | null
+          publication_type?:
+            | Database["public"]["Enums"]["publication_type"]
+            | null
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["paper_status"] | null
+          title?: string | null
+        }
+        Update: {
+          abstract?: string | null
+          author_names?: never
+          created_at?: string | null
+          domain?: Database["public"]["Enums"]["paper_domain"] | null
+          id?: string | null
+          keywords?: string[] | null
+          publication_type?:
+            | Database["public"]["Enums"]["publication_type"]
+            | null
+          published_at?: string | null
+          status?: Database["public"]["Enums"]["paper_status"] | null
+          title?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_certificate_number: { Args: never; Returns: string }
+      get_sanitized_author_names: {
+        Args: { authors_json: Json }
+        Returns: string[]
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["app_role"]
