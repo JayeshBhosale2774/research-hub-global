@@ -2,20 +2,96 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, CreditCard, Award, Clock, CheckCircle, XCircle } from "lucide-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  LineChart,
+  Line,
+} from "recharts";
+import { format, subMonths, startOfMonth, endOfMonth } from "date-fns";
+
+const DOMAIN_COLORS: Record<string, string> = {
+  computer_science: "hsl(var(--primary))",
+  engineering: "hsl(var(--info))",
+  medicine: "hsl(var(--success))",
+  physics: "hsl(var(--warning))",
+  chemistry: "hsl(var(--accent))",
+  biology: "hsl(142, 76%, 36%)",
+  mathematics: "hsl(280, 65%, 60%)",
+  social_sciences: "hsl(340, 75%, 55%)",
+  humanities: "hsl(45, 93%, 47%)",
+  other: "hsl(var(--muted-foreground))",
+};
+
+const STATUS_COLORS = {
+  submitted: "hsl(var(--info))",
+  under_review: "hsl(var(--warning))",
+  approved: "hsl(var(--success))",
+  published: "hsl(var(--primary))",
+  rejected: "hsl(var(--destructive))",
+  revision_requested: "hsl(var(--accent))",
+};
 
 export function AdminStats() {
   const { data: stats, isLoading } = useQuery({
     queryKey: ["admin-stats"],
     queryFn: async () => {
       const [papersRes, paymentsRes, certificatesRes] = await Promise.all([
-        supabase.from("papers").select("status"),
-        supabase.from("payments").select("status, total_amount"),
-        supabase.from("certificates").select("id"),
+        supabase.from("papers").select("status, domain, submitted_at, created_at"),
+        supabase.from("payments").select("status, total_amount, created_at"),
+        supabase.from("certificates").select("id, created_at"),
       ]);
 
       const papers = papersRes.data || [];
       const payments = paymentsRes.data || [];
       const certificates = certificatesRes.data || [];
+
+      // Calculate submissions over last 6 months
+      const submissionsByMonth = [];
+      for (let i = 5; i >= 0; i--) {
+        const monthStart = startOfMonth(subMonths(new Date(), i));
+        const monthEnd = endOfMonth(subMonths(new Date(), i));
+        const count = papers.filter((p) => {
+          const date = new Date(p.submitted_at);
+          return date >= monthStart && date <= monthEnd;
+        }).length;
+        submissionsByMonth.push({
+          month: format(monthStart, "MMM"),
+          submissions: count,
+        });
+      }
+
+      // Calculate domain distribution
+      const domainCounts: Record<string, number> = {};
+      papers.forEach((p) => {
+        const domain = p.domain || "other";
+        domainCounts[domain] = (domainCounts[domain] || 0) + 1;
+      });
+      const domainData = Object.entries(domainCounts).map(([name, value]) => ({
+        name: name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+        value,
+        color: DOMAIN_COLORS[name] || DOMAIN_COLORS.other,
+      }));
+
+      // Calculate status distribution
+      const statusCounts: Record<string, number> = {};
+      papers.forEach((p) => {
+        statusCounts[p.status] = (statusCounts[p.status] || 0) + 1;
+      });
+      const statusData = Object.entries(statusCounts).map(([name, value]) => ({
+        name: name.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase()),
+        value,
+        color: STATUS_COLORS[name as keyof typeof STATUS_COLORS] || "hsl(var(--muted-foreground))",
+      }));
 
       return {
         totalPapers: papers.length,
@@ -29,6 +105,9 @@ export function AdminStats() {
           .filter((p) => p.status === "verified")
           .reduce((sum, p) => sum + (p.total_amount || 0), 0),
         totalCertificates: certificates.length,
+        submissionsByMonth,
+        domainData,
+        statusData,
       };
     },
   });
@@ -116,6 +195,7 @@ export function AdminStats() {
         <p className="text-muted-foreground">Monitor submissions, payments, and certificates at a glance.</p>
       </div>
 
+      {/* Stat Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {statCards.map((stat) => (
           <Card key={stat.title} className="hover-lift">
@@ -132,6 +212,129 @@ export function AdminStats() {
             </CardContent>
           </Card>
         ))}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Submissions Over Time */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-serif">Submissions Over Time</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats?.submissionsByMonth || []}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis 
+                    dataKey="month" 
+                    className="text-xs fill-muted-foreground"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                  />
+                  <YAxis 
+                    className="text-xs fill-muted-foreground"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    allowDecimals={false}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      color: 'hsl(var(--foreground))'
+                    }}
+                  />
+                  <Bar 
+                    dataKey="submissions" 
+                    fill="hsl(var(--primary))" 
+                    radius={[4, 4, 0, 0]}
+                    name="Submissions"
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Domain Distribution */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg font-serif">Domain Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={stats?.domainData || []}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={2}
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                    labelLine={false}
+                  >
+                    {(stats?.domainData || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      color: 'hsl(var(--foreground))'
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Status Distribution */}
+        <Card className="lg:col-span-2">
+          <CardHeader>
+            <CardTitle className="text-lg font-serif">Paper Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[250px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={stats?.statusData || []} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" horizontal={false} />
+                  <XAxis 
+                    type="number"
+                    className="text-xs fill-muted-foreground"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    allowDecimals={false}
+                  />
+                  <YAxis 
+                    type="category"
+                    dataKey="name" 
+                    className="text-xs fill-muted-foreground"
+                    tick={{ fill: 'hsl(var(--muted-foreground))' }}
+                    width={120}
+                  />
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: 'hsl(var(--card))', 
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      color: 'hsl(var(--foreground))'
+                    }}
+                  />
+                  <Bar dataKey="value" radius={[0, 4, 4, 0]} name="Papers">
+                    {(stats?.statusData || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
