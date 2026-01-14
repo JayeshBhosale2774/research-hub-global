@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, BookOpen, Users, FileText, Award, LogIn, ChevronDown } from "lucide-react";
+import { Menu, X, BookOpen, Users, FileText, Award, LogIn, ChevronDown, LayoutDashboard, LogOut, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/useAuth";
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -24,6 +25,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const location = useLocation();
+  const { user, role, signOut } = useAuth();
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-md border-b border-border shadow-sm">
@@ -93,17 +95,42 @@ export function Header() {
 
           {/* Auth Buttons */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link to="/login">
-              <Button variant="ghost" size="sm">
-                <LogIn className="w-4 h-4 mr-1" />
-                Login
-              </Button>
-            </Link>
-            <Link to="/submit">
-              <Button variant="academic" size="sm">
-                Submit Paper
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                {role === "admin" && (
+                  <Link to="/admin">
+                    <Button variant="ghost" size="sm">
+                      <LayoutDashboard className="w-4 h-4 mr-1" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm">
+                    <User className="w-4 h-4 mr-1" />
+                    Dashboard
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="sm" onClick={signOut}>
+                  <LogOut className="w-4 h-4 mr-1" />
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    <LogIn className="w-4 h-4 mr-1" />
+                    Login
+                  </Button>
+                </Link>
+                <Link to="/submit">
+                  <Button variant="academic" size="sm">
+                    Submit Paper
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -156,16 +183,41 @@ export function Header() {
                   </div>
                 ))}
                 <div className="pt-4 px-4 flex flex-col gap-2">
-                  <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="outline" className="w-full">
-                      Login
-                    </Button>
-                  </Link>
-                  <Link to="/submit" onClick={() => setMobileMenuOpen(false)}>
-                    <Button variant="academic" className="w-full">
-                      Submit Paper
-                    </Button>
-                  </Link>
+                  {user ? (
+                    <>
+                      {role === "admin" && (
+                        <Link to="/admin" onClick={() => setMobileMenuOpen(false)}>
+                          <Button variant="outline" className="w-full">
+                            <LayoutDashboard className="w-4 h-4 mr-2" />
+                            Admin Dashboard
+                          </Button>
+                        </Link>
+                      )}
+                      <Link to="/dashboard" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full">
+                          <User className="w-4 h-4 mr-2" />
+                          My Dashboard
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" className="w-full" onClick={() => { signOut(); setMobileMenuOpen(false); }}>
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Logout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full">
+                          Login
+                        </Button>
+                      </Link>
+                      <Link to="/submit" onClick={() => setMobileMenuOpen(false)}>
+                        <Button variant="academic" className="w-full">
+                          Submit Paper
+                        </Button>
+                      </Link>
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>
