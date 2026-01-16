@@ -6,6 +6,7 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { 
   Search, Calendar, User, 
   ExternalLink, Download, ChevronLeft, ChevronRight, Loader2 
@@ -44,9 +45,10 @@ export default function Publications() {
   const { data: publications, isLoading } = useQuery({
     queryKey: ["published-papers"],
     queryFn: async () => {
+      // Fetch from papers table to get file_path for downloads
       const { data, error } = await supabase
-        .from("published_papers_public")
-        .select("*")
+        .from("papers")
+        .select("id, title, abstract, domain, publication_type, keywords, authors, published_at, created_at, file_path, status")
         .eq("status", "published")
         .order("published_at", { ascending: false });
 
@@ -55,10 +57,43 @@ export default function Publications() {
     },
   });
 
+  const handleDownloadPDF = async (filePath: string | null, title: string) => {
+    if (!filePath) {
+      toast.error("PDF file not available for this paper");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from("papers")
+        .createSignedUrl(filePath, 60); // 60 seconds expiry
+
+      if (error) throw error;
+
+      // Open in new tab or download
+      window.open(data.signedUrl, "_blank");
+      toast.success("Opening PDF...");
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      toast.error("Failed to download PDF");
+    }
+  };
+
+  // Helper to extract author names from the authors JSON
+  const getAuthorNames = (authors: any): string[] => {
+    if (!authors || !Array.isArray(authors)) return ["Unknown Author"];
+    return authors.map((a: any) => {
+      if (typeof a === "string") return a;
+      if (a.name) return a.name;
+      return "Unknown";
+    });
+  };
+
   const filteredPublications = (publications || []).filter((pub) => {
+    const authorNames = getAuthorNames(pub.authors);
     const matchesSearch = 
       pub.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      pub.author_names?.some((a: string) => a.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      authorNames.some((a: string) => a.toLowerCase().includes(searchQuery.toLowerCase())) ||
       pub.keywords?.some((k: string) => k.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesDomain = selectedDomain === "All" || pub.domain === selectedDomain;
@@ -200,7 +235,7 @@ export default function Publications() {
                       {/* Authors */}
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                         <User className="w-4 h-4" />
-                        <span>{pub.author_names?.join(", ") || "Unknown Author"}</span>
+                        <span>{getAuthorNames(pub.authors).join(", ")}</span>
                       </div>
 
                       {/* Abstract */}
@@ -238,7 +273,11 @@ export default function Publications() {
                           View
                         </Button>
                       </Link>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDownloadPDF(pub.file_path, pub.title)}
+                      >
                         <Download className="w-4 h-4 mr-1" />
                         PDF
                       </Button>
