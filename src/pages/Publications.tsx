@@ -64,15 +64,26 @@ export default function Publications() {
     }
 
     try {
+      toast.info("Downloading PDF...");
+      
+      // Download the file as blob to avoid browser blocking
       const { data, error } = await supabase.storage
         .from("papers")
-        .createSignedUrl(filePath, 60); // 60 seconds expiry
+        .download(filePath);
 
       if (error) throw error;
 
-      // Open in new tab or download
-      window.open(data.signedUrl, "_blank");
-      toast.success("Opening PDF...");
+      // Create a download link
+      const url = URL.createObjectURL(data);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      
+      toast.success("PDF downloaded successfully!");
     } catch (error) {
       console.error("Error downloading PDF:", error);
       toast.error("Failed to download PDF");
