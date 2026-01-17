@@ -7,6 +7,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import Publications from "./pages/Publications";
+import PDFViewer from "./pages/PDFViewer";
 import Conferences from "./pages/Conferences";
 import Standards from "./pages/Standards";
 import Login from "./pages/Login";
@@ -30,6 +31,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/publications" element={<Publications />} />
             <Route path="/publications/:type" element={<Publications />} />
+            <Route path="/view-pdf" element={<PDFViewer />} />
             <Route path="/conferences" element={<Conferences />} />
             <Route path="/standards" element={<Standards />} />
             <Route path="/login" element={<Login />} />
