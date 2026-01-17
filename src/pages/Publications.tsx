@@ -57,36 +57,31 @@ export default function Publications() {
     },
   });
 
-  const handleDownloadPDF = async (filePath: string | null, title: string) => {
+  const handleViewPDF = async (filePath: string | null, title: string) => {
     if (!filePath) {
       toast.error("PDF file not available for this paper");
       return;
     }
 
     try {
-      toast.info("Downloading PDF...");
+      toast.info("Opening PDF...");
       
-      // Download the file as blob to avoid browser blocking
+      // Download the file as blob to avoid browser blocking by ad blockers
       const { data, error } = await supabase.storage
         .from("papers")
         .download(filePath);
 
       if (error) throw error;
 
-      // Create a download link
-      const url = URL.createObjectURL(data);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
+      // Create blob URL and open in new tab
+      const blob = new Blob([data], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
       
-      toast.success("PDF downloaded successfully!");
+      toast.success("PDF opened in new tab!");
     } catch (error) {
-      console.error("Error downloading PDF:", error);
-      toast.error("Failed to download PDF");
+      console.error("Error opening PDF:", error);
+      toast.error("Failed to open PDF");
     }
   };
 
@@ -287,7 +282,7 @@ export default function Publications() {
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => handleDownloadPDF(pub.file_path, pub.title)}
+                        onClick={() => handleViewPDF(pub.file_path, pub.title)}
                       >
                         <Download className="w-4 h-4 mr-1" />
                         PDF
