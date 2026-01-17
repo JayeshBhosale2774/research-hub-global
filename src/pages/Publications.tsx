@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { Layout } from "@/components/layout/Layout";
@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
   Search, Calendar, User, 
-  ExternalLink, Download, ChevronLeft, ChevronRight, Loader2 
+  ExternalLink, FileText, ChevronLeft, ChevronRight, Loader2 
 } from "lucide-react";
 
 const domains = ["All", "CSE", "ECE", "IT", "Mechanical", "Civil", "Electrical", "Aerospace"];
@@ -38,6 +38,7 @@ const getTypeLabel = (type: string | null) => {
 };
 
 export default function Publications() {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDomain, setSelectedDomain] = useState("All");
   const [selectedType, setSelectedType] = useState("All");
@@ -57,32 +58,14 @@ export default function Publications() {
     },
   });
 
-  const handleViewPDF = async (filePath: string | null, title: string) => {
+  const handleViewPDF = (filePath: string | null, title: string) => {
     if (!filePath) {
       toast.error("PDF file not available for this paper");
       return;
     }
 
-    try {
-      toast.info("Opening PDF...");
-      
-      // Download the file as blob to avoid browser blocking by ad blockers
-      const { data, error } = await supabase.storage
-        .from("papers")
-        .download(filePath);
-
-      if (error) throw error;
-
-      // Create blob URL and open in new tab
-      const blob = new Blob([data], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      
-      toast.success("PDF opened in new tab!");
-    } catch (error) {
-      console.error("Error opening PDF:", error);
-      toast.error("Failed to open PDF");
-    }
+    // Navigate to PDF viewer page (avoids popup blockers)
+    navigate(`/view-pdf?file=${encodeURIComponent(filePath)}&title=${encodeURIComponent(title)}`);
   };
 
   // Helper to extract author names from the authors JSON
@@ -284,7 +267,7 @@ export default function Publications() {
                         size="sm"
                         onClick={() => handleViewPDF(pub.file_path, pub.title)}
                       >
-                        <Download className="w-4 h-4 mr-1" />
+                        <FileText className="w-4 h-4 mr-1" />
                         PDF
                       </Button>
                     </div>
