@@ -116,11 +116,19 @@ export default function PDFViewer() {
             </div>
           ) : pdfUrl ? (
             <div className="bg-card rounded-xl border border-border overflow-hidden shadow-lg">
-              <iframe
-                src={pdfUrl}
+              <object
+                data={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                type="application/pdf"
                 className="w-full h-[80vh]"
                 title={title}
-              />
+              >
+                {/* Fallback for browsers that don't support object for PDFs */}
+                <embed
+                  src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+                  type="application/pdf"
+                  className="w-full h-[80vh]"
+                />
+              </object>
             </div>
           ) : null}
         </div>
