@@ -34,6 +34,7 @@ const App = () => (
             <Route path="/view-pdf" element={<PDFViewer />} />
             <Route path="/conferences" element={<Conferences />} />
             <Route path="/standards" element={<Standards />} />
+            <Route path="/guidelines" element={<Standards />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/submit" element={<SubmitPaper />} />
