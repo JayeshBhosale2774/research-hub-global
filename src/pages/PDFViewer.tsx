@@ -3,18 +3,24 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Download, Loader2 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
+import { Viewer, Worker } from "@react-pdf-viewer/core";
+import { defaultLayoutPlugin } from "@react-pdf-viewer/default-layout";
+import "@react-pdf-viewer/core/lib/styles/index.css";
+import "@react-pdf-viewer/default-layout/lib/styles/index.css";
 
 export default function PDFViewer() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfData, setPdfData] = useState<Uint8Array | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
   const filePath = searchParams.get("file");
   const title = searchParams.get("title") || "Document";
+
+  const defaultLayoutPluginInstance = defaultLayoutPlugin();
 
   useEffect(() => {
     const loadPDF = async () => {
@@ -32,10 +38,9 @@ export default function PDFViewer() {
 
         if (downloadError) throw downloadError;
 
-        // Create blob URL for the PDF
-        const blob = new Blob([data], { type: "application/pdf" });
-        const url = URL.createObjectURL(blob);
-        setPdfUrl(url);
+        // Convert blob to Uint8Array for react-pdf-viewer
+        const arrayBuffer = await data.arrayBuffer();
+        setPdfData(new Uint8Array(arrayBuffer));
       } catch (err) {
         console.error("Error loading PDF:", err);
         setError("Failed to load PDF. Please try again.");
@@ -46,24 +51,30 @@ export default function PDFViewer() {
     };
 
     loadPDF();
-
-    // Cleanup blob URL on unmount
-    return () => {
-      if (pdfUrl) {
-        URL.revokeObjectURL(pdfUrl);
-      }
-    };
   }, [filePath]);
 
-  const handleDownload = () => {
-    if (pdfUrl) {
+  const handleDownload = async () => {
+    if (!filePath) return;
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from("papers")
+        .download(filePath);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
       const a = document.createElement("a");
-      a.href = pdfUrl;
+      a.href = url;
       a.download = `${title.replace(/[^a-zA-Z0-9]/g, "_")}.pdf`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       toast.success("PDF downloaded!");
+    } catch (err) {
+      console.error("Error downloading PDF:", err);
+      toast.error("Failed to download PDF");
     }
   };
 
@@ -91,7 +102,7 @@ export default function PDFViewer() {
                 variant="outline" 
                 size="sm" 
                 onClick={handleDownload}
-                disabled={!pdfUrl}
+                disabled={!pdfData}
               >
                 <Download className="w-4 h-4 mr-2" />
                 Download
@@ -114,21 +125,14 @@ export default function PDFViewer() {
                 Go Back
               </Button>
             </div>
-          ) : pdfUrl ? (
-            <div className="bg-card rounded-xl border border-border overflow-hidden shadow-lg">
-              <object
-                data={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
-                type="application/pdf"
-                className="w-full h-[80vh]"
-                title={title}
-              >
-                {/* Fallback for browsers that don't support object for PDFs */}
-                <embed
-                  src={`${pdfUrl}#toolbar=1&navpanes=1&scrollbar=1`}
-                  type="application/pdf"
-                  className="w-full h-[80vh]"
+          ) : pdfData ? (
+            <div className="bg-card rounded-xl border border-border overflow-hidden shadow-lg h-[80vh]">
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js">
+                <Viewer
+                  fileUrl={pdfData}
+                  plugins={[defaultLayoutPluginInstance]}
                 />
-              </object>
+              </Worker>
             </div>
           ) : null}
         </div>
