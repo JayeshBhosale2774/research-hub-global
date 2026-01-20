@@ -10,6 +10,7 @@ import Publications from "./pages/Publications";
 import PDFViewer from "./pages/PDFViewer";
 import Conferences from "./pages/Conferences";
 import Standards from "./pages/Standards";
+import FAQ from "./pages/FAQ";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SubmitPaper from "./pages/SubmitPaper";
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/conferences" element={<Conferences />} />
             <Route path="/standards" element={<Standards />} />
             <Route path="/guidelines" element={<Standards />} />
+            <Route path="/faq" element={<FAQ />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/submit" element={<SubmitPaper />} />
