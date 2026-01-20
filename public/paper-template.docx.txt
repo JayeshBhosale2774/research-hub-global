@@ -1,0 +1,143 @@
+================================================================================
+                    INTERNATIONAL RESEARCH PAPERS (IRP)
+                         PAPER SUBMISSION TEMPLATE
+================================================================================
+
+[TITLE OF YOUR PAPER IN CAPITAL LETTERS]
+(14pt Bold, Times New Roman, Centered)
+
+--------------------------------------------------------------------------------
+
+Author Name¹, Co-Author Name², Third Author³
+(12pt, Times New Roman, Centered)
+
+¹Department, Institution, City, Country
+²Department, Institution, City, Country
+³Department, Institution, City, Country
+Email: author@email.com
+
+================================================================================
+                                   ABSTRACT
+================================================================================
+
+[Write your abstract here - 200 to 300 words maximum]
+
+Your abstract should provide a concise summary of your research including:
+- Background and motivation
+- Research objectives
+- Methodology used
+- Key findings and results
+- Conclusions and implications
+
+Keywords: keyword1, keyword2, keyword3, keyword4, keyword5 (4-6 keywords)
+
+================================================================================
+                              1. INTRODUCTION
+================================================================================
+
+[Begin your introduction here]
+
+Provide background information about your research topic. Clearly state:
+- The research problem
+- The motivation for the study
+- Research objectives and questions
+- Brief overview of the methodology
+- Organization of the paper
+
+================================================================================
+                           2. LITERATURE REVIEW
+================================================================================
+
+[Review relevant literature here]
+
+Discuss:
+- Previous work in the field
+- Existing solutions and their limitations
+- Research gaps your work addresses
+- Theoretical framework (if applicable)
+
+================================================================================
+                              3. METHODOLOGY
+================================================================================
+
+[Describe your methodology here]
+
+Include:
+- Research design and approach
+- Data collection methods
+- Tools, technologies, or algorithms used
+- System architecture (if applicable)
+- Implementation details
+
+================================================================================
+                        4. RESULTS AND DISCUSSION
+================================================================================
+
+[Present your results here]
+
+Include:
+- Data presentation (tables, figures, charts)
+- Analysis of results
+- Comparison with existing methods
+- Discussion of findings
+- Limitations of the study
+
+================================================================================
+                              5. CONCLUSION
+================================================================================
+
+[Summarize your research here]
+
+Include:
+- Summary of key findings
+- Contributions of the research
+- Practical implications
+- Future research directions
+
+================================================================================
+                               REFERENCES
+================================================================================
+
+Use IEEE format for all references:
+
+[1] A. Author, "Title of Article," Name of Journal, vol. X, no. X, 
+    pp. XXX-XXX, Month Year.
+
+[2] A. Author and B. Author, "Title of Conference Paper," in Proc. 
+    Name of Conference, City, Country, Year, pp. XXX-XXX.
+
+[3] A. Author, Title of Book. City, Country: Publisher, Year.
+
+[4] A. Author. "Title of Webpage." Website Name. 
+    https://www.example.com (accessed Month Day, Year).
+
+================================================================================
+                          FORMATTING REQUIREMENTS
+================================================================================
+
+Paper Size:      A4 (210mm x 297mm)
+Margins:         1 inch (25.4mm) on all sides
+Font:            Times New Roman
+Title:           14pt Bold, Centered
+Section Heads:   12pt Bold, Left-aligned
+Body Text:       10pt, Justified
+Line Spacing:    Single
+Columns:         Two-column layout (except title and abstract)
+Page Limit:      6-12 pages
+Figures:         300 DPI minimum, numbered sequentially
+Tables:          Numbered sequentially, caption above table
+
+================================================================================
+                              PLAGIARISM NOTICE
+================================================================================
+
+Maximum allowed similarity: 40%
+
+All submitted papers undergo AI-powered plagiarism detection. Papers 
+exceeding 40% similarity will be rejected. Ensure proper citation of 
+all sources.
+
+================================================================================
+                    © International Research Papers (IRP)
+                         https://yourwebsite.com
+================================================================================
