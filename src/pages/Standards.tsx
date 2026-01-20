@@ -103,7 +103,18 @@ export default function Standards() {
               <AlertCircle className="w-4 h-4" />
               Plagiarism Policy
             </a>
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                const link = document.createElement('a');
+                link.href = '/paper-template.docx.txt';
+                link.download = 'IRP-Paper-Template.txt';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+            >
               <Download className="w-4 h-4 mr-2" />
               Download Template
             </Button>
