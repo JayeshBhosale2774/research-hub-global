@@ -2,7 +2,6 @@ import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Check, Star, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import paymentQR from "@/assets/payment-qr.jpeg";
 
 const pricingFeatures = [
   "Publication in IRP Journal",
@@ -98,22 +97,6 @@ export function PricingSection() {
                     </p>
                   </div>
 
-                  <div className="mt-6 p-4 bg-muted/30 rounded-lg border border-border">
-                    <h4 className="font-semibold text-foreground text-center mb-3">Scan to Pay</h4>
-                    <div className="flex justify-center">
-                      <img 
-                        src={paymentQR} 
-                        alt="UPI Payment QR Code" 
-                        className="w-48 h-48 rounded-lg object-contain bg-white p-2"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground text-center mt-2">
-                      UPI ID: jb7261065@okhdfcbank
-                    </p>
-                    <p className="text-xs text-muted-foreground text-center">
-                      Scan to pay with any UPI app
-                    </p>
-                  </div>
                 </div>
               </div>
             </div>
