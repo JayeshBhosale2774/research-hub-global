@@ -127,7 +127,7 @@ export default function PDFViewer() {
             </div>
           ) : pdfData ? (
             <div className="bg-card rounded-xl border border-border overflow-hidden shadow-lg h-[80vh]">
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs">
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@5.4.530/build/pdf.worker.min.mjs">
                 <Viewer
                   fileUrl={pdfData}
                   plugins={[defaultLayoutPluginInstance]}
