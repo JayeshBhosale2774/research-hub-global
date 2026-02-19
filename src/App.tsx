@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import SubmitPaper from "./pages/SubmitPaper";
 import VerifyCertificate from "./pages/VerifyCertificate";
+import PaperFormat from "./pages/PaperFormat";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AuthorDashboard from "./pages/author/AuthorDashboard";
 import NotFound from "./pages/NotFound";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/submit" element={<SubmitPaper />} />
+            <Route path="/format" element={<PaperFormat />} />
             <Route path="/verify" element={<VerifyCertificate />} />
             <Route path="/verify/:id" element={<VerifyCertificate />} />
             <Route
