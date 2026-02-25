@@ -6,6 +6,7 @@ import { LogOut, FileText, CreditCard, Award, User } from "lucide-react";
 import { MyPapers } from "@/components/author/MyPapers";
 import { MyPayments } from "@/components/author/MyPayments";
 import { MyCertificates } from "@/components/author/MyCertificates";
+import { MyProfile } from "@/components/author/MyProfile";
 
 export default function AuthorDashboard() {
   const { user, signOut } = useAuth();
@@ -35,7 +36,7 @@ export default function AuthorDashboard() {
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3 lg:w-[400px]">
+          <TabsList className="grid w-full grid-cols-4 lg:w-[520px]">
             <TabsTrigger value="papers" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               <span className="hidden sm:inline">My Papers</span>
@@ -47,6 +48,10 @@ export default function AuthorDashboard() {
             <TabsTrigger value="certificates" className="flex items-center gap-2">
               <Award className="h-4 w-4" />
               <span className="hidden sm:inline">Certificates</span>
+            </TabsTrigger>
+            <TabsTrigger value="profile" className="flex items-center gap-2">
+              <User className="h-4 w-4" />
+              <span className="hidden sm:inline">Profile</span>
             </TabsTrigger>
           </TabsList>
 
@@ -60,6 +65,10 @@ export default function AuthorDashboard() {
 
           <TabsContent value="certificates">
             <MyCertificates />
+          </TabsContent>
+
+          <TabsContent value="profile">
+            <MyProfile />
           </TabsContent>
         </Tabs>
       </main>
