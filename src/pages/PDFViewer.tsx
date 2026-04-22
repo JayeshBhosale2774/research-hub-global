@@ -16,8 +16,10 @@ export default function PDFViewer() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [pdfData, setPdfData] = useState<Uint8Array | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [renderFailed, setRenderFailed] = useState(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.2);
@@ -39,6 +41,11 @@ export default function PDFViewer() {
         if (dlErr) throw dlErr;
         const buf = new Uint8Array(await data.arrayBuffer());
         setPdfData(buf);
+        // Also create a blob URL for the fallback viewer
+        const url = URL.createObjectURL(
+          new Blob([buf], { type: "application/pdf" })
+        );
+        setBlobUrl(url);
       } catch (err) {
         console.error("Error loading PDF:", err);
         setError("Failed to load PDF. Please try again.");
@@ -48,6 +55,9 @@ export default function PDFViewer() {
       }
     };
     loadPDF();
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
   }, [filePath]);
 
   const handleDownload = async () => {
@@ -147,29 +157,65 @@ export default function PDFViewer() {
               </Button>
             </div>
           ) : pdfData ? (
-            <div className="flex justify-center bg-muted/30 rounded-xl border border-border p-4 overflow-auto max-h-[85vh]">
-              <Document
-                file={{ data: pdfData }}
-                onLoadSuccess={({ numPages }) => setNumPages(numPages)}
-                onLoadError={(e) => {
-                  console.error(e);
-                  setError("Failed to render PDF");
-                }}
-                loading={
-                  <div className="flex items-center gap-2 py-10">
-                    <Loader2 className="w-5 h-5 animate-spin" /> Rendering...
+            renderFailed && blobUrl ? (
+              <div className="space-y-4">
+                <div className="bg-warning/10 border border-warning/30 text-warning-foreground rounded-lg p-4 text-sm">
+                  <p className="font-medium mb-1">In-browser preview unavailable</p>
+                  <p className="text-muted-foreground">
+                    Your browser blocked the embedded PDF viewer. You can download the file or open it in a new tab below.
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-3 justify-center">
+                  <Button onClick={handleDownload}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PDF
+                  </Button>
+                  <Button variant="outline" asChild>
+                    <a href={blobUrl} target="_blank" rel="noopener noreferrer">
+                      Open in new tab
+                    </a>
+                  </Button>
+                </div>
+                <object
+                  data={blobUrl}
+                  type="application/pdf"
+                  className="w-full h-[75vh] rounded-xl border border-border bg-card"
+                >
+                  <div className="p-8 text-center text-muted-foreground">
+                    Your browser cannot display this PDF inline. Please use the Download button above.
                   </div>
-                }
-              >
-                <Page
-                  pageNumber={pageNumber}
-                  scale={scale}
-                  renderTextLayer={false}
-                  renderAnnotationLayer={false}
-                  className="shadow-lg"
-                />
-              </Document>
-            </div>
+                </object>
+              </div>
+            ) : (
+              <div className="flex justify-center bg-muted/30 rounded-xl border border-border p-4 overflow-auto max-h-[85vh]">
+                <Document
+                  file={{ data: pdfData }}
+                  onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                  onLoadError={(e) => {
+                    console.error("react-pdf load error:", e);
+                    setRenderFailed(true);
+                    toast.error("PDF preview failed — fallback enabled");
+                  }}
+                  loading={
+                    <div className="flex items-center gap-2 py-10">
+                      <Loader2 className="w-5 h-5 animate-spin" /> Rendering...
+                    </div>
+                  }
+                >
+                  <Page
+                    pageNumber={pageNumber}
+                    scale={scale}
+                    renderTextLayer={false}
+                    renderAnnotationLayer={false}
+                    className="shadow-lg"
+                    onRenderError={(e) => {
+                      console.error("react-pdf render error:", e);
+                      setRenderFailed(true);
+                    }}
+                  />
+                </Document>
+              </div>
+            )
           ) : null}
         </div>
       </div>
