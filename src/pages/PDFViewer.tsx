@@ -16,8 +16,10 @@ export default function PDFViewer() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [pdfData, setPdfData] = useState<Uint8Array | null>(null);
+  const [blobUrl, setBlobUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [renderFailed, setRenderFailed] = useState(false);
   const [numPages, setNumPages] = useState<number>(0);
   const [pageNumber, setPageNumber] = useState<number>(1);
   const [scale, setScale] = useState<number>(1.2);
