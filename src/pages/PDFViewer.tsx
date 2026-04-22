@@ -41,6 +41,11 @@ export default function PDFViewer() {
         if (dlErr) throw dlErr;
         const buf = new Uint8Array(await data.arrayBuffer());
         setPdfData(buf);
+        // Also create a blob URL for the fallback viewer
+        const url = URL.createObjectURL(
+          new Blob([buf], { type: "application/pdf" })
+        );
+        setBlobUrl(url);
       } catch (err) {
         console.error("Error loading PDF:", err);
         setError("Failed to load PDF. Please try again.");
@@ -50,6 +55,9 @@ export default function PDFViewer() {
       }
     };
     loadPDF();
+    return () => {
+      if (blobUrl) URL.revokeObjectURL(blobUrl);
+    };
   }, [filePath]);
 
   const handleDownload = async () => {
