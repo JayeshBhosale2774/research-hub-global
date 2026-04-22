@@ -95,11 +95,25 @@ export function PapersManagement() {
       const { error } = await supabase.from("papers").update(updateData).eq("id", paperId);
 
       if (error) throw error;
+
+      // If approving, stamp the PDF with APPROVED mark
+      if (status === "approved") {
+        const { error: stampErr } = await supabase.functions.invoke("stamp-paper", {
+          body: { paperId },
+        });
+        if (stampErr) {
+          console.error("Stamp error:", stampErr);
+          throw new Error("Paper approved, but stamping failed: " + stampErr.message);
+        }
+      }
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ["admin-papers"] });
       queryClient.invalidateQueries({ queryKey: ["admin-stats"] });
-      toast.success("Paper status updated successfully");
+      const msg = variables.status === "approved"
+        ? "Paper approved and stamped successfully"
+        : "Paper status updated successfully";
+      toast.success(msg);
       setActionDialogOpen(false);
       setAdminNotes("");
       setPlagiarismScore("");
